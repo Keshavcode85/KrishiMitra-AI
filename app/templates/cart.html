@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="cart-page">
+  <div class="cart-header">
+    <h1 class="page-title">🛒 Your Cart</h1>
+    <p class="page-subtitle">Review your items before checkout.</p>
+  </div>
+
+  <div class="cart-layout">
+    <!-- Cart Items -->
+    <div class="cart-items" id="cartItemsContainer">
+
+      {% if cart_items %}
+        {% for item in cart_items %}
+        <div class="cart-row" id="item-{{ item._id }}" data-id="{{ item._id }}" data-price="{{ item.price }}">
+          <div class="cart-img-wrap">
+            <img src="{{ url_for('static', filename='uploads/' + item.image) }}" alt="{{ item.name }}">
+          </div>
+          <div class="cart-item-info">
+            <h3>{{ item.name }}</h3>
+            <p class="cart-item-desc">{{ item.description }}</p>
+            <div class="cart-item-meta">
+              <div class="qty-control">
+                <button class="qty-btn" onclick="changeQty('{{ item._id }}', -1)">−</button>
+                <span id="qty-{{ item._id }}">{{ item.quantity if item.quantity else 1 }}</span>
+                <button class="qty-btn" onclick="changeQty('{{ item._id }}', 1)">+</button>
+              </div>
+              <button class="remove-link" onclick="removeItem('{{ item._id }}')">🗑 Remove</button>
+            </div>
+          </div>
+          <div class="cart-item-price" id="price-{{ item._id }}">₹{{ item.price }}</div>
+        </div>
+        {% endfor %}
+
+      {% else %}
+        <!-- Empty cart state -->
+        <div class="empty-cart-state" id="emptyCartState">
+          <div class="empty-cart-icon">🛒</div>
+          <h3>Your cart is empty!</h3>
+          <p>You haven't added anything yet. Start shopping to fill it up.</p>
+          <a href="/shop" class="btn-primary">Browse Products</a>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Order Summary -->
+    <div class="cart-summary" id="cartSummaryBox">
+      <h3>Order Summary</h3>
+      <div class="summary-row"><span>Subtotal</span><span id="summarySubtotal">₹0</span></div>
+      <div class="summary-row"><span>Delivery</span><span class="free-tag">FREE</span></div>
+      <div class="summary-row"><span>Discount</span><span>−₹0</span></div>
+      <div class="summary-divider"></div>
+      <div class="summary-row total-row"><span>Total</span><span id="summaryTotal">₹0</span></div>
+      <button class="btn-checkout" id="checkoutBtn" onclick="openPaymentModal()">Proceed to Checkout →</button>
+      <a href="/shop" class="continue-link">← Continue Shopping</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAYMENT MODAL ══════════════ -->
+<div id="paymentModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closePaymentModal()">✕</button>
+
+    <!-- Step 1: Payment Form -->
+    <div id="payStep1">
+      <div class="modal-header">
+        <div class="modal-icon">💳</div>
+        <h2>Complete Payment</h2>
+        <p>Total Amount: <strong id="modalTotal">₹0</strong></p>
+      </div>
+
+      <div class="pay-tabs">
+        <button class="pay-tab active" onclick="switchTab(this,'upi')">📱 UPI</button>
+        <button class="pay-tab" onclick="switchTab(this,'card')">💳 Card</button>
+        <button class="pay-tab" onclick="switchTab(this,'cod')">📦 COD</button>
+      </div>
+
+      <div class="pay-panel active" id="upi">
+        <label>Enter UPI ID</label>
+        <input type="text" placeholder="yourname@upi" class="pay-input">
+        <div class="upi-logos">
+          <span onclick="selectUpi(this)">GPay</span>
+          <span onclick="selectUpi(this)">PhonePe</span>
+          <span onclick="selectUpi(this)">Paytm</span>
+          <span onclick="selectUpi(this)">BHIM</span>
+        </div>
+      </div>
+
+      <div class="pay-panel" id="card">
+        <label>Card Number</label>
+        <input type="text" placeholder="1234 5678 9012 3456" class="pay-input" maxlength="19" oninput="formatCard(this)">
+        <div class="card-row">
+          <div class="card-field">
+            <label>Expiry</label>
+            <input type="text" placeholder="MM / YY" class="pay-input" maxlength="7">
+          </div>
+          <div class="card-field">
+            <label>CVV</label>
+            <input type="password" placeholder="•••" class="pay-input" maxlength="3">
+          </div>
+        </div>
+        <label>Name on Card</label>
+        <input type="text" placeholder="Full Name" class="pay-input">
+      </div>
+
+      <div class="pay-panel" id="cod">
+        <div class="cod-info">
+          <div class="cod-icon">📦</div>
+          <h3>Cash on Delivery</h3>
+          <p>Pay when your order arrives at your doorstep. No extra charges.</p>
+          <div class="cod-features">
+            <span>✅ No advance payment</span>
+            <span>✅ Inspect before paying</span>
+            <span>✅ Free delivery</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-pay-now" onclick="processPayment()">
+        <span id="payBtnText">Pay Now →</span>
+      </button>
+    </div>
+
+    <!-- Step 2: Processing -->
+    <div id="payStep2" style="display:none">
+      <div class="processing-screen">
+        <div class="spinner"></div>
+        <p>Processing your payment...</p>
+        <span>Please do not close this window</span>
+      </div>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div id="payStep3" style="display:none">
+      <div class="success-screen">
+        <div class="success-checkmark">
+          <div class="check-circle">
+            <svg viewBox="0 0 52 52" class="check-svg">
+              <circle cx="26" cy="26" r="25" fill="none" stroke="#52b788" stroke-width="2"/>
+              <path class="check-path" fill="none" stroke="#52b788" stroke-width="3" d="M14 27l8 8 16-16"/>
+            </svg>
+          </div>
+        </div>
+        <h2>Order Placed Successfully! 🎉</h2>
+        <p class="success-subtitle">Thank you for your purchase!</p>
+        <div class="order-details-box">
+          <div class="order-detail-row">
+            <span>Order ID</span>
+            <strong id="orderIdDisplay">#KM00000000</strong>
+          </div>
+          <div class="order-detail-row">
+            <span>Amount Paid</span>
+            <strong id="successTotal">₹0</strong>
+          </div>
+          <div class="order-detail-row">
+            <span>Estimated Delivery</span>
+            <strong>3–5 Business Days</strong>
+          </div>
+          <div class="order-detail-row">
+            <span>Status</span>
+            <strong class="status-confirmed">✅ Confirmed</strong>
+          </div>
+        </div>
+        <p class="success-note">📧 A confirmation has been sent to your registered account.</p>
+        <div class="success-actions">
+          <a href="/" class="btn-success-home">Go to Home</a>
+          <a href="/shop" class="btn-success-shop">Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Cart State ──────────────────────────────
+  // Build initial state from rendered items
+  let cartItems = {};
+
+  document.querySelectorAll('.cart-row[data-id]').forEach(row => {
+    const id    = row.dataset.id;
+    const price = parseFloat(row.dataset.price) || 0;
+    const qty   = parseInt(document.getElementById('qty-' + id)?.textContent) || 1;
+    cartItems[id] = { price, qty };
+  });
+
+  // ── Recalculate & Render Total ───────────────
+  function recalcTotal() {
+    let subtotal = 0;
+    Object.values(cartItems).forEach(item => {
+      subtotal += item.price * item.qty;
+    });
+
+    const fmt = '₹' + subtotal.toLocaleString('en-IN');
+    document.getElementById('summarySubtotal').textContent = fmt;
+    document.getElementById('summaryTotal').textContent    = fmt;
+    document.getElementById('modalTotal').textContent      = fmt;
+    document.getElementById('successTotal').textContent    = fmt;
+
+    const activeTab = document.querySelector('.pay-tab.active');
+    if (activeTab) updatePayBtnLabel(activeTab.textContent.trim(), subtotal);
+
+    // Disable checkout if cart is empty
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (Object.keys(cartItems).length === 0) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.style.opacity = '.45';
+      checkoutBtn.style.cursor  = 'not-allowed';
+    } else {
+      checkoutBtn.disabled = false;
+      checkoutBtn.style.opacity = '1';
+      checkoutBtn.style.cursor  = 'pointer';
+    }
+  }
+
+  function updatePayBtnLabel(tabLabel, amount) {
+    const fmt = '₹' + amount.toLocaleString('en-IN');
+    if (tabLabel.includes('UPI'))  document.getElementById('payBtnText').textContent = 'Pay ' + fmt + ' via UPI →';
+    else if (tabLabel.includes('Card')) document.getElementById('payBtnText').textContent = 'Pay ' + fmt + ' →';
+    else document.getElementById('payBtnText').textContent = 'Place Order (COD) →';
+  }
+
+  // ── Quantity Change ──────────────────────────
+  function changeQty(id, delta) {
+    if (!cartItems[id]) return;
+    cartItems[id].qty = Math.max(1, cartItems[id].qty + delta);
+    document.getElementById('qty-' + id).textContent = cartItems[id].qty;
+
+    // Update per-item price display
+    const itemTotal = cartItems[id].price * cartItems[id].qty;
+    document.getElementById('price-' + id).textContent = '₹' + itemTotal.toLocaleString('en-IN');
+
+    recalcTotal();
+  }
+
+  // ── Remove Item ──────────────────────────────
+  function removeItem(id) {
+    const row = document.getElementById('item-' + id);
+    if (!row) return;
+
+    // Animate out
+    row.style.transition = 'all .35s ease';
+    row.style.opacity    = '0';
+    row.style.transform  = 'translateX(30px)';
+    row.style.maxHeight  = row.offsetHeight + 'px';
+
+    setTimeout(() => {
+      row.style.maxHeight  = '0';
+      row.style.marginBottom = '0';
+      row.style.padding    = '0';
+      row.style.overflow   = 'hidden';
+    }, 250);
+
+    setTimeout(() => {
+      row.remove();
+      delete cartItems[id];
+      recalcTotal();
+      checkEmptyCart();
+
+      // Also call backend remove if URL available
+      fetch('/cart/remove/' + id, { method: 'POST' }).catch(() => {});
+    }, 500);
+  }
+
+  // ── Show Empty State ─────────────────────────
+  function checkEmptyCart() {
+    const container = document.getElementById('cartItemsContainer');
+    if (Object.keys(cartItems).length === 0) {
+      container.innerHTML = `
+        <div class="empty-cart-state" id="emptyCartState">
+          <div class="empty-cart-icon">🛒</div>
+          <h3>Your cart is empty!</h3>
+          <p>You haven't added anything yet. Start shopping to fill it up.</p>
+          <a href="/shop" class="btn-primary">Browse Products</a>
+        </div>`;
+    }
+  }
+
+  // ── Payment Modal ────────────────────────────
+  function openPaymentModal() {
+    if (Object.keys(cartItems).length === 0) return;
+    document.getElementById('paymentModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    document.getElementById('payStep1').style.display = 'block';
+    document.getElementById('payStep2').style.display = 'none';
+    document.getElementById('payStep3').style.display = 'none';
+    // Reset tabs
+    document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.pay-tab')[0].classList.add('active');
+    document.getElementById('upi').classList.add('active');
+    recalcTotal();
+  }
+
+  function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if (e.target === this) closePaymentModal();
+  });
+
+  function switchTab(btn, panelId) {
+    document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(panelId).classList.add('active');
+    recalcTotal();
+  }
+
+  function selectUpi(el) {
+    document.querySelectorAll('.upi-logos span').forEach(s => s.classList.remove('upi-selected'));
+    el.classList.add('upi-selected');
+  }
+
+  function formatCard(input) {
+    let v = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    let parts = [];
+    for (let i = 0; i < v.length; i += 4) parts.push(v.substring(i, i + 4));
+    input.value = parts.join(' ');
+  }
+
+  function processPayment() {
+    document.getElementById('payStep1').style.display = 'none';
+    document.getElementById('payStep2').style.display = 'block';
+    const orderId = '#KM' + Math.floor(10000000 + Math.random() * 90000000);
+    document.getElementById('orderIdDisplay').textContent = orderId;
+    setTimeout(() => {
+      document.getElementById('payStep2').style.display = 'none';
+      document.getElementById('payStep3').style.display = 'block';
+    }, 2200);
+  }
+
+  // ── Init ─────────────────────────────────────
+  recalcTotal();
+</script>
+
+{% endblock %}

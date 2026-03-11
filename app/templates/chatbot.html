@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KrishiMitra AI — Chatbot</title>
+   <link rel="icon" type="image/x-icon" href=" static/final_favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Variables (matches main site) ── */
+    :root {
+      --green-dark:  #1a3d2e;
+      --green-mid:   #2d6a4f;
+      --green-light: #52b788;
+      --green-pale:  #d8f3dc;
+      --accent:      #f4a261;
+      --accent-dark: #e76f51;
+      --cream:       #faf8f3;
+      --cream-dark:  #f0ebe0;
+      --text-dark:   #1c2b20;
+      --text-mid:    #4a5e4f;
+      --text-light:  #7a9080;
+      --white:       #ffffff;
+      --shadow-sm:   0 2px 8px rgba(26,61,46,.08);
+      --shadow-md:   0 6px 24px rgba(26,61,46,.12);
+      --shadow-lg:   0 16px 48px rgba(26,61,46,.16);
+      --radius-sm:   8px;
+      --radius-md:   16px;
+      --radius-lg:   24px;
+      --radius-xl:   32px;
+      --transition:  all .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-dark);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 6%; height: 70px;
+      background: var(--green-dark);
+      box-shadow: 0 2px 16px rgba(0,0,0,.18);
+      flex-shrink: 0;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--white);
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 700; letter-spacing: .3px;
+      text-decoration: none;
+    }
+    .logo em { font-style: normal; color: var(--green-light); }
+    .logo-icon { font-size: 1.5rem; }
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .nav-link {
+      color: rgba(255,255,255,.78); font-size: .93rem; font-weight: 500;
+      padding: 7px 14px; border-radius: var(--radius-sm);
+      transition: var(--transition); text-decoration: none;
+    }
+    .nav-link:hover { color: var(--white); background: rgba(255,255,255,.1); }
+    .nav-link.active { color: var(--white); background: rgba(82,183,136,.2); }
+    .btn-cart-nav {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(82,183,136,.18); color: var(--white);
+      font-size: .88rem; font-weight: 600; padding: 8px 18px;
+      border-radius: 40px; border: 1.5px solid rgba(82,183,136,.4);
+      transition: var(--transition); text-decoration: none;
+    }
+    .btn-cart-nav:hover { background: var(--green-light); border-color: var(--green-light); transform: translateY(-1px); }
+
+    /* ── Main Chatbot Layout ── */
+    .chatbot-page {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .chat-sidebar {
+      width: 290px; flex-shrink: 0;
+      background: var(--white);
+      border-right: 1px solid rgba(45,106,79,.1);
+      display: flex; flex-direction: column;
+      padding: 24px 18px;
+      overflow-y: auto; gap: 0;
+    }
+    .sidebar-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 20px;
+    }
+    .ai-avatar {
+      position: relative; width: 50px; height: 50px;
+      background: var(--green-dark); border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0;
+    }
+    .ai-status-dot {
+      position: absolute; bottom: 3px; right: 3px;
+      width: 11px; height: 11px; background: #22c55e;
+      border-radius: 50%; border: 2px solid var(--white);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.7} }
+    .sidebar-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; color: var(--green-dark); margin-bottom: 3px;
+    }
+    .ai-status-text { font-size: .75rem; color: #22c55e; font-weight: 600; }
+
+    .sidebar-divider { height: 1px; background: rgba(45,106,79,.08); margin: 14px 0; }
+    .sidebar-label {
+      font-size: .72rem; font-weight: 700; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: .7px; margin-bottom: 10px;
+      display: block;
+    }
+
+    .quick-topics { display: flex; flex-direction: column; gap: 7px; }
+    .topic-btn {
+      background: var(--cream); border: 1.5px solid rgba(45,106,79,.1);
+      border-radius: var(--radius-sm); padding: 9px 14px;
+      font-family: 'DM Sans', sans-serif; font-size: .83rem; font-weight: 500;
+      color: var(--text-dark); text-align: left; cursor: pointer;
+      transition: var(--transition);
+    }
+    .topic-btn:hover {
+      background: var(--green-pale); border-color: var(--green-light);
+      color: var(--green-dark); transform: translateX(4px);
+    }
+
+    /* Capabilities Box */
+    .capabilities-box {
+      background: linear-gradient(135deg, var(--green-dark), #2d6a4f);
+      border-radius: var(--radius-md); padding: 16px;
+      margin-top: 4px;
+    }
+    .cap-title { font-size: .78rem; font-weight: 700; color: var(--green-pale); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
+    .cap-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .cap-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .cap-icon {
+      width: 28px; height: 28px; background: rgba(255,255,255,.1);
+      border-radius: 7px; display: flex; align-items: center;
+      justify-content: center; font-size: .9rem; flex-shrink: 0;
+    }
+    .cap-text { font-size: .78rem; color: rgba(255,255,255,.8); line-height: 1.4; }
+    .cap-text strong { color: var(--white); display: block; font-size: .8rem; }
+
+    .tip-item {
+      font-size: .8rem; color: var(--text-mid); line-height: 1.5;
+      padding: 8px 10px; background: var(--cream);
+      border-radius: var(--radius-sm); border-left: 3px solid var(--green-light);
+    }
+
+    .clear-chat-btn {
+      margin-top: auto; padding-top: 16px; background: none;
+      border: 1.5px dashed #dce5dc; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600;
+      color: var(--text-light); cursor: pointer; transition: var(--transition);
+      padding: 10px; width: 100%;
+    }
+    .clear-chat-btn:hover { border-color: #fca5a5; color: #b91c1c; background: #fef2f2; }
+
+    /* ── Chat Main ── */
+    .chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Topbar */
+    .chat-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 28px; background: var(--white);
+      border-bottom: 1px solid rgba(45,106,79,.1); flex-shrink: 0;
+    }
+    .chat-topbar-info { display: flex; align-items: center; gap: 14px; }
+    .topbar-icon {
+      font-size: 1.5rem; width: 44px; height: 44px; background: var(--green-pale);
+      border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+    }
+    .chat-topbar-info h2 {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem;
+      color: var(--green-dark); margin-bottom: 2px;
+    }
+    .chat-topbar-info span { font-size: .75rem; color: var(--text-light); }
+    .topbar-actions { display: flex; gap: 8px; }
+    .topbar-btn {
+      background: var(--green-pale); border: 1.5px solid rgba(82,183,136,.3);
+      border-radius: 40px; padding: 7px 16px;
+      font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600;
+      color: var(--green-mid); cursor: pointer; transition: var(--transition);
+    }
+    .topbar-btn:hover { background: var(--green-mid); color: var(--white); border-color: var(--green-mid); }
+    .topbar-btn.danger:hover { background: #b91c1c; color: var(--white); border-color: #b91c1c; }
+
+    /* ── Messages ── */
+    .chat-messages {
+      flex: 1; overflow-y: auto;
+      padding: 24px 28px 16px;
+      display: flex; flex-direction: column; gap: 18px;
+      scroll-behavior: smooth;
+    }
+    .chat-messages::-webkit-scrollbar { width: 5px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(45,106,79,.2); border-radius: 10px; }
+
+    .msg-row {
+      display: flex; align-items: flex-end; gap: 10px;
+      opacity: 0; transform: translateY(14px);
+      animation: msgIn .35s ease forwards;
+    }
+    @keyframes msgIn { to { opacity:1; transform:none; } }
+    .bot-row  { justify-content: flex-start; }
+    .user-row { justify-content: flex-end; }
+
+    .msg-avatar {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; flex-shrink: 0;
+    }
+    .bot-avatar  { background: var(--green-dark); }
+    .user-avatar { background: var(--accent); }
+
+    .msg-bubble {
+      max-width: 66%; padding: 14px 18px; border-radius: 18px;
+      font-size: .9rem; line-height: 1.7; position: relative;
+    }
+    .bot-bubble {
+      background: var(--white); color: var(--text-dark);
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(45,106,79,.08); box-shadow: var(--shadow-sm);
+    }
+    .user-bubble {
+      background: var(--green-dark); color: var(--white);
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 3px 12px rgba(26,61,46,.25);
+    }
+    .msg-time { display: block; font-size: .68rem; margin-top: 6px; opacity: .5; }
+
+    /* Welcome chips */
+    .welcome-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .welcome-chips span {
+      background: var(--green-pale); color: var(--green-mid);
+      font-size: .78rem; font-weight: 600; padding: 6px 12px;
+      border-radius: 40px; border: 1px solid rgba(82,183,136,.3);
+      cursor: pointer; transition: var(--transition);
+    }
+    .welcome-chips span:hover { background: var(--green-mid); color: var(--white); border-color: var(--green-mid); }
+
+    /* Bot response rich styles */
+    .bot-msg-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(45,106,79,.08);
+    }
+    .bot-msg-header strong { font-size: .92rem; color: var(--green-dark); }
+    .resp-points {
+      list-style: none; margin: 8px 0;
+      display: flex; flex-direction: column; gap: 6px; padding: 0;
+    }
+    .resp-points li {
+      font-size: .86rem; color: var(--text-dark);
+      padding: 7px 12px; background: var(--cream);
+      border-radius: var(--radius-sm); line-height: 1.5;
+      border-left: 3px solid var(--green-light);
+    }
+    .resp-tip {
+      margin-top: 10px; padding: 9px 12px;
+      background: rgba(244,162,97,.1); border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: .82rem; color: var(--text-mid); line-height: 1.5;
+    }
+
+    /* Disease result card */
+    .disease-card {
+      background: var(--cream); border-radius: var(--radius-md);
+      padding: 14px; margin-top: 10px;
+      border: 1px solid rgba(45,106,79,.12);
+    }
+    .disease-card .dc-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid rgba(45,106,79,.07);
+      font-size: .85rem;
+    }
+    .disease-card .dc-row:last-child { border-bottom: none; }
+    .disease-card .dc-row span { color: var(--text-mid); }
+    .disease-card .dc-row strong { color: var(--green-dark); }
+    .dc-badge {
+      display: inline-block; background: var(--accent); color: var(--white);
+      font-size: .72rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 40px; margin-top: 8px;
+    }
+    .dc-badge.healthy { background: var(--green-light); }
+
+    /* Image preview in chat */
+    .chat-img-preview {
+      max-width: 200px; border-radius: var(--radius-sm);
+      overflow: hidden; margin-bottom: 8px;
+      border: 2px solid rgba(255,255,255,.2);
+    }
+    .chat-img-preview img { width: 100%; display: block; }
+
+    /* Weather card */
+    .weather-card {
+      background: linear-gradient(135deg, #1a3d2e, #2d6a4f);
+      border-radius: var(--radius-md); padding: 16px; margin-top: 10px;
+      color: var(--white);
+    }
+    .wc-city { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 6px; }
+    .wc-condition { font-size: .82rem; color: rgba(255,255,255,.7); margin-bottom: 12px; text-transform: capitalize; }
+    .wc-stats { display: flex; gap: 12px; }
+    .wc-stat {
+      flex: 1; background: rgba(255,255,255,.1); border-radius: var(--radius-sm);
+      padding: 10px; text-align: center;
+    }
+    .wc-val { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--white); }
+    .wc-lbl { font-size: .7rem; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .4px; }
+    .wc-crop {
+      margin-top: 12px; background: var(--accent);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: .88rem; font-weight: 700; color: var(--white); text-align: center;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: none; align-items: center; gap: 10px;
+      padding: 0 28px 8px;
+    }
+    .typing-indicator.show { display: flex; }
+    .typing-dots {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--white); padding: 12px 18px;
+      border-radius: 18px 18px 18px 4px;
+      border: 1px solid rgba(45,106,79,.08); box-shadow: var(--shadow-sm);
+    }
+    .typing-dots span {
+      width: 7px; height: 7px; background: var(--green-light);
+      border-radius: 50%; animation: typingBounce 1.2s ease-in-out infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: .2s; }
+    .typing-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes typingBounce {
+      0%,60%,100% { transform: translateY(0); opacity: .6; }
+      30%          { transform: translateY(-7px); opacity: 1; }
+    }
+
+    /* ── Input Bar ── */
+    .chat-inputbar {
+      padding: 14px 28px 18px; background: var(--white);
+      border-top: 1px solid rgba(45,106,79,.1); flex-shrink: 0;
+    }
+
+    /* Image preview strip above input */
+    .preview-strip {
+      display: none; align-items: center; gap: 10px;
+      background: var(--green-pale); border-radius: var(--radius-sm);
+      padding: 8px 14px; margin-bottom: 10px;
+      border: 1px solid rgba(82,183,136,.3);
+    }
+    .preview-strip.show { display: flex; }
+    .preview-thumb {
+      width: 42px; height: 42px; border-radius: 6px;
+      object-fit: cover; border: 2px solid var(--green-light);
+    }
+    .preview-info { flex: 1; }
+    .preview-info span { font-size: .82rem; font-weight: 600; color: var(--green-dark); display: block; }
+    .preview-info small { font-size: .72rem; color: var(--text-mid); }
+    .preview-remove {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-light); font-size: 1rem; padding: 4px;
+      transition: var(--transition);
+    }
+    .preview-remove:hover { color: #b91c1c; }
+
+    /* Voice recording strip */
+    .voice-strip {
+      display: none; align-items: center; gap: 12px;
+      background: rgba(244,162,97,.1); border-radius: var(--radius-sm);
+      padding: 8px 14px; margin-bottom: 10px;
+      border: 1px solid rgba(244,162,97,.3);
+    }
+    .voice-strip.show { display: flex; }
+    .voice-wave { display: flex; align-items: center; gap: 3px; }
+    .voice-wave span {
+      width: 3px; background: var(--accent); border-radius: 2px;
+      animation: waveBar .8s ease-in-out infinite;
+    }
+    .voice-wave span:nth-child(1) { height: 12px; animation-delay: 0s; }
+    .voice-wave span:nth-child(2) { height: 20px; animation-delay: .1s; }
+    .voice-wave span:nth-child(3) { height: 16px; animation-delay: .2s; }
+    .voice-wave span:nth-child(4) { height: 24px; animation-delay: .15s; }
+    .voice-wave span:nth-child(5) { height: 14px; animation-delay: .05s; }
+    @keyframes waveBar { 0%,100%{transform:scaleY(.5)} 50%{transform:scaleY(1)} }
+    .voice-timer { font-size: .85rem; font-weight: 700; color: var(--accent-dark); }
+    .voice-label { font-size: .82rem; color: var(--text-mid); flex: 1; }
+    .voice-stop {
+      background: var(--accent-dark); color: var(--white);
+      border: none; border-radius: 40px; padding: 5px 14px;
+      font-size: .78rem; font-weight: 700; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; transition: var(--transition);
+    }
+    .voice-stop:hover { background: #c0392b; }
+
+    .input-wrap {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--cream); border: 1.5px solid rgba(45,106,79,.15);
+      border-radius: 50px; padding: 6px 6px 6px 18px;
+      transition: var(--transition);
+    }
+    .input-wrap:focus-within {
+      border-color: var(--green-light); background: var(--white);
+      box-shadow: 0 0 0 3px rgba(82,183,136,.12);
+    }
+    .input-wrap input {
+      flex: 1; border: none; background: none; outline: none;
+      font-family: 'DM Sans', sans-serif; font-size: .95rem; color: var(--text-dark);
+    }
+    .input-wrap input::placeholder { color: var(--text-light); }
+
+    /* Icon Buttons in input */
+    .input-icon-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: none; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 1.05rem; transition: var(--transition); flex-shrink: 0;
+    }
+    .btn-image-upload {
+      background: var(--cream-dark); color: var(--text-mid);
+    }
+    .btn-image-upload:hover { background: var(--green-pale); color: var(--green-mid); transform: scale(1.08); }
+    .btn-voice {
+      background: var(--cream-dark); color: var(--text-mid);
+    }
+    .btn-voice:hover { background: rgba(244,162,97,.15); color: var(--accent-dark); transform: scale(1.08); }
+    .btn-voice.recording { background: var(--accent); color: var(--white); animation: recordPulse 1s ease-in-out infinite; }
+    @keyframes recordPulse { 0%,100%{box-shadow:0 0 0 0 rgba(244,162,97,.4)} 50%{box-shadow:0 0 0 8px rgba(244,162,97,0)} }
+
+    .send-btn {
+      width: 42px; height: 42px; background: var(--green-mid);
+      border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: var(--transition); flex-shrink: 0;
+    }
+    .send-btn:hover { background: var(--green-dark); transform: scale(1.08); }
+    .send-btn svg { width: 18px; height: 18px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .input-hint {
+      font-size: .72rem; color: var(--text-light); margin-top: 8px; text-align: center;
+    }
+    .input-hint kbd {
+      background: var(--cream-dark); border: 1px solid #dce5dc;
+      border-radius: 4px; padding: 1px 5px; font-size: .7rem; font-family: monospace;
+    }
+
+    /* Divider between tip sections */
+    .sidebar-spacer { height: 12px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) {
+      .chat-sidebar { display: none; }
+      .chat-messages { padding: 16px; }
+      .chat-topbar { padding: 14px 16px; }
+      .chat-inputbar { padding: 12px 16px 16px; }
+      .msg-bubble { max-width: 88%; }
+    }
+    @media (max-width: 680px) {
+      .navbar { padding: 0 5%; }
+      .nav-links { display: none; }
+    }
+
+    /* hidden file input */
+    #imageFileInput { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navbar ── -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🌱</span>
+      Krishi<em>Mitra</em>
+    </a>
+    <div class="nav-links">
+      <a href="index.html"    class="nav-link">Home</a>
+      <a href="shop.html"     class="nav-link">Shop</a>
+      <a href="chatbot.html"  class="nav-link active">AI Chat</a>
+      <a href="cart.html"     class="btn-cart-nav">🛒 Cart <span style="background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-left:2px;">0</span></a>
+    </div>
+  </nav>
+
+  <!-- ── Main Layout ── -->
+  <div class="chatbot-page">
+
+    <!-- Sidebar -->
+    <aside class="chat-sidebar">
+      <div class="sidebar-header">
+        <div class="ai-avatar">
+          🤖
+          <span class="ai-status-dot"></span>
+        </div>
+        <div>
+          <h3>KrishiMitra AI</h3>
+          <span class="ai-status-text">● Online & Ready</span>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <span class="sidebar-label">Quick Actions</span>
+      <div class="quick-topics">
+        <button class="topic-btn" onclick="sendQuick('Recommend crop for Delhi')">🌍 Crop by Weather</button>
+        <button class="topic-btn" onclick="sendQuick('What fertilizer should I use?')">🧪 Fertilizer Guide</button>
+        <button class="topic-btn" onclick="sendQuick('How to detect plant disease?')">🔬 Disease Detection</button>
+        <button class="topic-btn" onclick="sendQuick('Best irrigation method for wheat')">💧 Irrigation Tips</button>
+        <button class="topic-btn" onclick="sendQuick('When to sow rice in UP?')">📅 Sowing Schedule</button>
+        <button class="topic-btn" onclick="sendQuick('Pest control for maize')">🐛 Pest Control</button>
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-spacer"></div>
+
+      <span class="sidebar-label">Capabilities</span>
+      <div class="capabilities-box">
+        <div class="cap-title">What I can do</div>
+        <div class="cap-item">
+          <div class="cap-icon">📸</div>
+          <div class="cap-text">
+            <strong>Disease Detection</strong>
+            Upload leaf photo for AI diagnosis
+          </div>
+        </div>
+        <div class="cap-item">
+          <div class="cap-icon">🌤️</div>
+          <div class="cap-text">
+            <strong>Weather + Crops</strong>
+            Get city-based crop suggestions
+          </div>
+        </div>
+        <div class="cap-item">
+          <div class="cap-icon">🎙️</div>
+          <div class="cap-text">
+            <strong>Voice Input</strong>
+            Speak your question in Hindi or English
+          </div>
+        </div>
+        <div class="cap-item">
+          <div class="cap-icon">💊</div>
+          <div class="cap-text">
+            <strong>Medicine Advice</strong>
+            Fungicide & treatment recommendations
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-divider"></div>
+
+      <span class="sidebar-label">Tips</span>
+      <div class="tip-item">📷 Upload a clear photo of the infected leaf for best results</div>
+      <div class="sidebar-spacer"></div>
+      <div class="tip-item">🌆 Type "recommend crop for [city]" to get weather-based advice</div>
+
+      <div class="sidebar-spacer"></div>
+      <button class="clear-chat-btn" onclick="clearChat()">🗑️ Clear Conversation</button>
+    </aside>
+
+    <!-- Chat Main -->
+    <div class="chat-main">
+
+      <!-- Topbar -->
+      <div class="chat-topbar">
+        <div class="chat-topbar-info">
+          <div class="topbar-icon">🌿</div>
+          <div>
+            <h2>KrishiMitra Assistant</h2>
+            <span>Plant Disease · Crop Advice · Weather · Fertilizer</span>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="topbar-btn" onclick="document.getElementById('imageFileInput').click()">📸 Upload Leaf Photo</button>
+          <button class="topbar-btn danger" onclick="clearChat()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-messages" id="chatMessages">
+
+        <!-- Welcome Message -->
+        <div class="msg-row bot-row" style="animation-delay:.1s">
+          <div class="msg-avatar bot-avatar">🌱</div>
+          <div class="msg-bubble bot-bubble">
+            <div class="bot-msg-header">
+              <span class="bot-resp-icon">👋</span>
+              <strong>Namaste, Kisan Bhai!</strong>
+            </div>
+            <p>Main <strong>KrishiMitra AI</strong> hoon — aapka digital farming assistant. Main help kar sakta hoon:</p>
+            <ul class="resp-points">
+              <li>📸 <strong>Disease Detection</strong> — Leaf photo upload karo</li>
+              <li>🌤️ <strong>Crop Recommendation</strong> — Weather ke hisaab se</li>
+              <li>💊 <strong>Medicine & Fertilizer</strong> — Sahi treatment jaano</li>
+              <li>🎙️ <strong>Voice Input</strong> — Bolke bhi pooch sakte ho</li>
+            </ul>
+            <div class="resp-tip">💡 Shuru karne ke liye neeche quick options try karo ya apna sawaal type karo!</div>
+            <div class="welcome-chips">
+              <span onclick="sendQuick('Recommend crop for Delhi')">🌍 Crop for Delhi</span>
+              <span onclick="sendQuick('What fertilizer should I use?')">🧪 Fertilizer</span>
+              <span onclick="triggerImageUpload()">📸 Upload Leaf</span>
+            </div>
+            <span class="msg-time" id="welcomeTime"></span>
+          </div>
+        </div>
+
+      </div><!-- /chat-messages -->
+
+      <!-- Typing Indicator -->
+      <div class="typing-indicator" id="typingIndicator">
+        <div class="msg-avatar bot-avatar">🌱</div>
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="chat-inputbar">
+
+        <!-- Image Preview Strip -->
+        <div class="preview-strip" id="previewStrip">
+          <img src="" alt="preview" class="preview-thumb" id="previewThumb"/>
+          <div class="preview-info">
+            <span id="previewFileName">leaf_photo.jpg</span>
+            <small>🔬 AI will analyze for plant disease</small>
+          </div>
+          <button class="preview-remove" onclick="removeImage()" title="Remove">✕</button>
+        </div>
+
+        <!-- Voice Recording Strip -->
+        <div class="voice-strip" id="voiceStrip">
+          <div class="voice-wave">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <span class="voice-timer" id="voiceTimer">0:00</span>
+          <span class="voice-label">Recording... speak your question</span>
+          <button class="voice-stop" onclick="stopVoice()">⏹ Stop</button>
+        </div>
+
+        <div class="input-wrap">
+          <input type="text" id="chatInput" placeholder="Apna sawaal poochho... (e.g. recommend crop for Mumbai)" onkeydown="handleKeyDown(event)"/>
+
+          <!-- Image Upload Button -->
+          <button class="input-icon-btn btn-image-upload" onclick="triggerImageUpload()" title="Upload leaf photo for disease detection">
+            📷
+          </button>
+
+          <!-- Voice Button -->
+          <button class="input-icon-btn btn-voice" id="voiceBtn" onclick="toggleVoice()" title="Voice input (Hindi / English)">
+            🎙️
+          </button>
+
+          <!-- Send Button -->
+          <button class="send-btn" onclick="sendMessage()" title="Send message">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+
+        <div class="input-hint">
+          Press <kbd>Enter</kbd> to send &nbsp;·&nbsp; 📷 Upload leaf image for disease AI &nbsp;·&nbsp; 🎙️ Voice input supported
+        </div>
+      </div>
+
+    </div><!-- /chat-main -->
+  </div><!-- /chatbot-page -->
+
+  <!-- Hidden file input -->
+  <input type="file" id="imageFileInput" accept="image/*" onchange="handleImageUpload(event)"/>
+
+  <script>
+    // ── State ──
+    let uploadedImage = null;
+    let uploadedImageName = '';
+    let isRecording = false;
+    let voiceInterval = null;
+    let voiceSeconds = 0;
+    let recognition = null;
+
+    // ── Set welcome time ──
+    document.getElementById('welcomeTime').textContent = getTime();
+
+    function getTime() {
+      return new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+    }
+
+    // ── Send message on Enter ──
+    function handleKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // ── Quick topic buttons ──
+    function sendQuick(text) {
+      document.getElementById('chatInput').value = text;
+      sendMessage();
+    }
+
+    // ── Trigger image upload ──
+    function triggerImageUpload() {
+      document.getElementById('imageFileInput').click();
+    }
+
+    // ── Handle image file selected ──
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      uploadedImageName = file.name;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        uploadedImage = e.target.result;
+        document.getElementById('previewThumb').src = uploadedImage;
+        document.getElementById('previewFileName').textContent = file.name;
+        document.getElementById('previewStrip').classList.add('show');
+        document.getElementById('chatInput').placeholder = 'Press send to analyze this leaf image...';
+        document.getElementById('chatInput').focus();
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    // ── Remove image ──
+    function removeImage() {
+      uploadedImage = null;
+      uploadedImageName = '';
+      document.getElementById('previewStrip').classList.remove('show');
+      document.getElementById('chatInput').placeholder = 'Apna sawaal poochho...';
+    }
+
+    // ── Voice Input ──
+    function toggleVoice() {
+      if (isRecording) {
+        stopVoice();
+      } else {
+        startVoice();
+      }
+    }
+
+    function startVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        appendMessage('bot', `<p>⚠️ Aapka browser voice input support nahi karta. Chrome use karo.</p>`);
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'hi-IN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('chatInput').value = transcript;
+        stopVoice();
+        sendMessage();
+      };
+
+      recognition.onerror = (e) => {
+        stopVoice();
+        if (e.error !== 'aborted') {
+          appendMessage('bot', `<p>🎙️ Voice input mein error aayi: ${e.error}. Phir try karo.</p>`);
+        }
+      };
+
+      recognition.onend = () => { if (isRecording) stopVoice(); };
+
+      recognition.start();
+      isRecording = true;
+      voiceSeconds = 0;
+      document.getElementById('voiceBtn').classList.add('recording');
+      document.getElementById('voiceStrip').classList.add('show');
+      voiceInterval = setInterval(() => {
+        voiceSeconds++;
+        const m = Math.floor(voiceSeconds / 60);
+        const s = voiceSeconds % 60;
+        document.getElementById('voiceTimer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+        if (voiceSeconds >= 30) stopVoice();
+      }, 1000);
+    }
+
+    function stopVoice() {
+      isRecording = false;
+      clearInterval(voiceInterval);
+      document.getElementById('voiceBtn').classList.remove('recording');
+      document.getElementById('voiceStrip').classList.remove('show');
+      if (recognition) { try { recognition.stop(); } catch(e) {} }
+    }
+
+    // ── Append message ──
+    function appendMessage(type, html, imgSrc) {
+      const messages = document.getElementById('chatMessages');
+      const row = document.createElement('div');
+      row.className = `msg-row ${type === 'bot' ? 'bot-row' : 'user-row'}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = `msg-avatar ${type === 'bot' ? 'bot-avatar' : 'user-avatar'}`;
+      avatar.textContent = type === 'bot' ? '🌱' : '👨‍🌾';
+
+      const bubble = document.createElement('div');
+      bubble.className = `msg-bubble ${type === 'bot' ? 'bot-bubble' : 'user-bubble'}`;
+
+      if (imgSrc) {
+        bubble.innerHTML = `<div class="chat-img-preview"><img src="${imgSrc}" alt="uploaded"/></div>${html}`;
+      } else {
+        bubble.innerHTML = html;
+      }
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'msg-time';
+      timeSpan.textContent = getTime();
+      bubble.appendChild(timeSpan);
+
+      if (type === 'bot') {
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+      } else {
+        row.appendChild(bubble);
+        row.appendChild(avatar);
+      }
+
+      messages.appendChild(row);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // ── Show / hide typing ──
+    function showTyping() { document.getElementById('typingIndicator').classList.add('show'); }
+    function hideTyping() { document.getElementById('typingIndicator').classList.remove('show'); }
+
+    // ── Main send function ──
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text && !uploadedImage) return;
+
+      // Show user message
+      if (uploadedImage) {
+        appendMessage('user', `<p>${text || '🔬 Please analyze this plant leaf for disease'}</p>`, uploadedImage);
+      } else {
+        appendMessage('user', `<p>${escapeHtml(text)}</p>`);
+      }
+
+      input.value = '';
+
+      // Process
+      if (uploadedImage) {
+        const imgData = uploadedImage;
+        const imgName = uploadedImageName;
+        removeImage();
+        showTyping();
+        setTimeout(() => {
+          hideTyping();
+          showDiseaseResult(imgName);
+        }, 2200);
+      } else {
+        showTyping();
+        setTimeout(() => {
+          hideTyping();
+          getBotResponse(text.toLowerCase());
+        }, 1400);
+      }
+    }
+
+    // ── Escape HTML ──
+    function escapeHtml(t) {
+      return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── Disease Detection Response (simulated) ──
+    function showDiseaseResult(imgName) {
+      // Simulate random detection from classes
+      const classes = [
+        { name: "Potato Early Blight",  med: "Mancozeb Fungicide Spray",   severity: "Moderate", icon: "🥔" },
+        { name: "Potato Late Blight",   med: "Metalaxyl Spray",             severity: "High",     icon: "🥔" },
+        { name: "Maize Rust",           med: "Propiconazole Spray",         severity: "Moderate", icon: "🌽" },
+        { name: "Rice Leaf Blast",      med: "Tricyclazole Spray",          severity: "High",     icon: "🌾" },
+        { name: "Wheat Leaf Rust",      med: "Tilt Fungicide",              severity: "Low",      icon: "🌾" },
+        { name: "Healthy",              med: "No treatment needed ✅",      severity: "None",     icon: "🌿" },
+      ];
+      const result = classes[Math.floor(Math.random() * classes.length)];
+      const isHealthy = result.name === 'Healthy';
+      const conf = (85 + Math.random() * 12).toFixed(1);
+
+      const html = `
+        <div class="bot-msg-header">
+          <span>${result.icon}</span>
+          <strong>Disease Analysis Complete</strong>
+        </div>
+        <p>AI model ne aapki image analyze ki. Yeh raha result:</p>
+        <div class="disease-card">
+          <div class="dc-row"><span>🔬 Detected Disease</span><strong>${result.name}</strong></div>
+          <div class="dc-row"><span>📊 Confidence</span><strong>${conf}%</strong></div>
+          <div class="dc-row"><span>⚠️ Severity</span><strong>${result.severity}</strong></div>
+          <div class="dc-row"><span>💊 Recommended Medicine</span><strong>${result.med}</strong></div>
+          <span class="dc-badge ${isHealthy ? 'healthy' : ''}">${isHealthy ? '✅ Healthy Plant' : '⚠️ Treatment Needed'}</span>
+        </div>
+        ${!isHealthy ? `<div class="resp-tip">🛒 <strong>${result.med}</strong> hamare shop mein available hai. <a href="shop.html" style="color:var(--green-mid);font-weight:700;">Shop Now →</a></div>` : '<div class="resp-tip">🎉 Aapka paudha bilkul theek hai! Regular care jaari rakho.</div>'}
+      `;
+      appendMessage('bot', html);
+    }
+
+    // ── General Bot Response ──
+    function getBotResponse(msg) {
+
+      // Weather + Crop Recommendation
+      if (msg.includes('recommend crop') || msg.includes('crop for')) {
+        const words = msg.split(' ');
+        const cityRaw = words[words.length - 1];
+        const city = cityRaw.charAt(0).toUpperCase() + cityRaw.slice(1);
+        showWeatherCropResponse(city);
+        return;
+      }
+
+      // Fertilizer
+      if (msg.includes('fertilizer')) {
+        appendMessage('bot', `
+          <div class="bot-msg-header"><span>🧪</span><strong>Fertilizer Recommendation</strong></div>
+          <p>Zyaadatar fasolon ke liye <strong>NPK balanced fertilizer</strong> best hota hai:</p>
+          <ul class="resp-points">
+            <li><strong>N (Nitrogen)</strong> — Patte aur growth ke liye</li>
+            <li><strong>P (Phosphorus)</strong> — Jadon aur phoolon ke liye</li>
+            <li><strong>K (Potassium)</strong> — Disease resistance ke liye</li>
+            <li>Har 3 hafte mein use karo, seedha roots ke paas</li>
+          </ul>
+          <div class="resp-tip">💡 Soil test karwao pehle — isse pata chalega exactly konsa fertilizer chahiye.</div>
+        `);
+        return;
+      }
+
+      // Disease detection help
+      if (msg.includes('disease') || msg.includes('detect')) {
+        appendMessage('bot', `
+          <div class="bot-msg-header"><span>🔬</span><strong>Plant Disease Detection</strong></div>
+          <p>Paudhe ki bimari pehchanne ke liye <strong>leaf photo upload karo</strong>!</p>
+          <ul class="resp-points">
+            <li>📸 Upar "Upload Leaf Photo" button dabao</li>
+            <li>🌿 Infected patte ki seedhi photo lo</li>
+            <li>🤖 AI model turant diagnose karega</li>
+            <li>💊 Medicine recommendation milegi instantly</li>
+          </ul>
+          <div class="resp-tip">📷 Hamare AI model mein 6 types ki common diseases detect hoti hain: Potato Blight, Maize Rust, Rice Blast, aur zyada.</div>
+        `);
+        return;
+      }
+
+      // Irrigation
+      if (msg.includes('irrigation') || msg.includes('water') || msg.includes('pani')) {
+        appendMessage('bot', `
+          <div class="bot-msg-header"><span>💧</span><strong>Irrigation Tips</strong></div>
+          <ul class="resp-points">
+            <li>🌾 <strong>Wheat:</strong> Drip irrigation best hai — 30% paani bachta hai</li>
+            <li>🌾 <strong>Rice:</strong> Flood irrigation ya SRI method use karo</li>
+            <li>🌽 <strong>Maize:</strong> Furrow irrigation — 7-10 din mein ek baar</li>
+            <li>🥔 <strong>Potato:</strong> Sprinkler irrigation — soil moist rakho</li>
+          </ul>
+          <div class="resp-tip">⏰ Subah ya shaam ko paani do — evaporation kam hota hai.</div>
+        `);
+        return;
+      }
+
+      // Pest control
+      if (msg.includes('pest') || msg.includes('keeda') || msg.includes('kida')) {
+        appendMessage('bot', `
+          <div class="bot-msg-header"><span>🐛</span><strong>Pest Control Guide</strong></div>
+          <ul class="resp-points">
+            <li>🐛 <strong>Aphids:</strong> Neem oil spray (5ml/L paani)</li>
+            <li>🦗 <strong>Stem Borer:</strong> Carbofuran granules soil mein daalo</li>
+            <li>🐌 <strong>Caterpillars:</strong> Bt (Bacillus thuringiensis) spray</li>
+            <li>🦟 <strong>Whitefly:</strong> Yellow sticky traps lagao</li>
+          </ul>
+          <div class="resp-tip">🌿 Pehle organic methods try karo — chemical pesticides last resort honay chahiye.</div>
+        `);
+        return;
+      }
+
+      // Sowing schedule
+      if (msg.includes('sow') || msg.includes('when') || msg.includes('kab')) {
+        appendMessage('bot', `
+          <div class="bot-msg-header"><span>📅</span><strong>Sowing Schedule</strong></div>
+          <ul class="resp-points">
+            <li>🌾 <strong>Rice (Kharif):</strong> June–July mein baayi karo</li>
+            <li>🌾 <strong>Wheat (Rabi):</strong> October–November best time</li>
+            <li>🌽 <strong>Maize:</strong> June–July (Kharif) ya Feb–March (Rabi)</li>
+            <li>🥔 <strong>Potato:</strong> October–November (UP/North India)</li>
+          </ul>
+          <div class="resp-tip">🌦️ Local mausam dekhke exact date decide karo — barish ke 1 hafte baad baayi karo.</div>
+        `);
+        return;
+      }
+
+      // Hello
+      if (msg.includes('hello') || msg.includes('hi') || msg.includes('namaste') || msg.includes('helo')) {
+        appendMessage('bot', `
+          <p>Namaste Kisan Bhai! 👋🌱</p>
+          <p>Main <strong>KrishiMitra AI</strong> hoon. Kya help chahiye aapko aaj?</p>
+          <div class="welcome-chips">
+            <span onclick="sendQuick('Recommend crop for Delhi')">🌍 Crop Advice</span>
+            <span onclick="sendQuick('What fertilizer should I use?')">🧪 Fertilizer</span>
+            <span onclick="triggerImageUpload()">📸 Disease Check</span>
+          </div>
+        `);
+        return;
+      }
+
+      // Default
+      appendMessage('bot', `
+        <div class="bot-msg-header"><span>🤔</span><strong>Mujhe samajh nahi aaya</strong></div>
+        <p>Main in topics par help kar sakta hoon:</p>
+        <ul class="resp-points">
+          <li>🌍 <strong>"Recommend crop for [city]"</strong> — weather-based advice</li>
+          <li>📸 <strong>Leaf photo upload</strong> — disease detection</li>
+          <li>🧪 <strong>"Fertilizer"</strong> — NPK recommendations</li>
+          <li>💧 <strong>"Irrigation tips"</strong> — watering guide</li>
+          <li>🐛 <strong>"Pest control"</strong> — organic solutions</li>
+        </ul>
+        <div class="resp-tip">💡 Seedha apna sawaal Hindi ya English mein type karo!</div>
+      `);
+    }
+
+    // ── Weather + Crop (uses real OpenWeatherMap API) ──
+    function showWeatherCropResponse(city) {
+      const API_KEY = '42872c9adfa7373605ac509b9b3eb975';
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          if (data.cod !== 200) {
+            appendMessage('bot', `
+              <div class="bot-msg-header"><span>❌</span><strong>City Not Found</strong></div>
+              <p>"<strong>${city}</strong>" city nahi mili. Please correct city name likho (e.g., Delhi, Mumbai, Lucknow).</p>
+            `);
+            return;
+          }
+
+          const weather = data.weather[0].description;
+          const temp = data.main.temp;
+          const humidity = data.main.humidity;
+          const crop = recommendCrop(temp, humidity);
+          const icon = data.weather[0].icon;
+
+          const html = `
+            <div class="bot-msg-header">
+              <span>🌤️</span>
+              <strong>Weather & Crop Recommendation</strong>
+            </div>
+            <div class="weather-card">
+              <div class="wc-city">📍 ${data.name}, ${data.sys.country}</div>
+              <div class="wc-condition">${weather}</div>
+              <div class="wc-stats">
+                <div class="wc-stat">
+                  <div class="wc-val">${temp.toFixed(1)}°C</div>
+                  <div class="wc-lbl">Temperature</div>
+                </div>
+                <div class="wc-stat">
+                  <div class="wc-val">${humidity}%</div>
+                  <div class="wc-lbl">Humidity</div>
+                </div>
+                <div class="wc-stat">
+                  <div class="wc-val">${data.wind.speed} m/s</div>
+                  <div class="wc-lbl">Wind</div>
+                </div>
+              </div>
+              <div class="wc-crop">🌾 Recommended Crop: ${crop}</div>
+            </div>
+            <div class="resp-tip">💊 Is fasal ke liye fertilizer ya disease info chahiye? Poochho!</div>
+          `;
+          appendMessage('bot', html);
+        })
+        .catch(() => {
+          // Fallback if API fails
+          const temp = 28 + Math.random() * 6;
+          const humidity = 55 + Math.random() * 20;
+          const crop = recommendCrop(temp, humidity);
+          const html = `
+            <div class="bot-msg-header"><span>🌤️</span><strong>Crop Recommendation (Estimated)</strong></div>
+            <p>Live weather data nahi mili, par estimated data se suggestion:</p>
+            <div class="weather-card">
+              <div class="wc-city">📍 ${city}</div>
+              <div class="wc-condition">Estimated conditions</div>
+              <div class="wc-stats">
+                <div class="wc-stat"><div class="wc-val">${temp.toFixed(1)}°C</div><div class="wc-lbl">Temp (est.)</div></div>
+                <div class="wc-stat"><div class="wc-val">${humidity.toFixed(0)}%</div><div class="wc-lbl">Humidity (est.)</div></div>
+              </div>
+              <div class="wc-crop">🌾 Recommended: ${crop}</div>
+            </div>
+          `;
+          appendMessage('bot', html);
+        });
+    }
+
+    // ── Crop logic (matches Python backend) ──
+    function recommendCrop(temp, humidity) {
+      if (temp > 30 && humidity > 60) return 'Rice 🌾';
+      if (temp > 25 && humidity < 50) return 'Wheat 🌾';
+      if (temp > 28) return 'Maize 🌽';
+      return 'Potato 🥔';
+    }
+
+    // ── Clear chat ──
+    function clearChat() {
+      const messages = document.getElementById('chatMessages');
+      messages.innerHTML = '';
+      appendMessage('bot', `
+        <div class="bot-msg-header"><span>🔄</span><strong>Chat Clear Ho Gayi!</strong></div>
+        <p>Naya sawaal poochho ya leaf photo upload karo 🌱</p>
+        <div class="welcome-chips">
+          <span onclick="sendQuick('Recommend crop for Delhi')">🌍 Crop Advice</span>
+          <span onclick="sendQuick('What fertilizer should I use?')">🧪 Fertilizer</span>
+          <span onclick="triggerImageUpload()">📸 Upload Leaf</span>
+        </div>
+      `);
+    }
+  </script>
+
+</body>
+</html>

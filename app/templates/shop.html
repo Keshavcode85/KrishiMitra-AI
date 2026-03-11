@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="shop-header">
+  <div>
+    <h1 class="page-title">🌾 Agriculture Store</h1>
+    <p class="page-subtitle">Quality products for every stage of your farming journey.</p>
+  </div>
+  {% if session.get('user') %}
+  <a href="{{ url_for('main.add_product') }}" class="btn-primary">➕ Add Product</a>
+  {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+  <button class="filter-btn active">All</button>
+  <button class="filter-btn">Seeds</button>
+  <button class="filter-btn">Fertilizers</button>
+  <button class="filter-btn">Tools</button>
+  <button class="filter-btn">Pesticides</button>
+</div>
+
+<!-- Product Grid -->
+<div class="product-grid">
+  {% for product in products %}
+  <div class="product-card">
+    <div class="product-img-wrap">
+      <img src="{{ url_for('static', filename='uploads/' + product.image) }}" 
+           alt="{{ product.name }}" class="product-image">
+      <span class="product-badge">In Stock</span>
+    </div>
+    <div class="product-info">
+      <h3 class="product-name">{{ product.name }}</h3>
+      <p class="product-desc">{{ product.description }}</p>
+      <div class="product-footer">
+        <span class="product-price">₹{{ product.price }}</span>
+        <a href="{{ url_for('main.add_to_cart', product_id=product._id) }}" class="btn-cart">
+          🛒 Add to Cart
+        </a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span>🌱</span>
+    <p>No products available yet.</p>
+    {% if session.get('user') %}
+      <a href="{{ url_for('main.add_product') }}" class="btn-primary">Add First Product</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

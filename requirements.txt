@@ -1,0 +1,9 @@
+Flask
+gunicorn
+pymongo
+dnspython
+tensorflow
+numpy
+Pillow
+requests
+Werkzeug

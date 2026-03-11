@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="form-page-wrapper">
+  <div class="form-card">
+    <div class="form-card-header">
+      <h2>➕ Add New Product</h2>
+      <p>Fill in the details to list a new item in the store.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="product-form">
+      <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" id="name" name="name" placeholder="e.g. Hybrid Wheat Seeds" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="price">Price (₹)</label>
+          <input type="number" id="price" name="price" placeholder="e.g. 450" required>
+        </div>
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option value="">Select Category</option>
+            <option value="seeds">Seeds</option>
+            <option value="fertilizers">Fertilizers</option>
+            <option value="tools">Tools</option>
+            <option value="pesticides">Pesticides</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="4" placeholder="Describe the product features, usage, and benefits..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Product Image</label>
+        <div class="file-upload-area" onclick="document.getElementById('image').click()">
+          <span class="upload-icon">📷</span>
+          <p>Click to upload or drag & drop</p>
+          <span class="upload-hint">PNG, JPG up to 5MB</span>
+          <input type="file" id="image" name="image" accept="image/*" required style="display:none"
+                 onchange="showFileName(this)">
+        </div>
+        <p class="file-name-display" id="fileName"></p>
+      </div>
+
+      <div class="form-actions">
+        <a href="/shop" class="btn-outline">Cancel</a>
+        <button type="submit" class="btn-primary">Add Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function showFileName(input) {
+    const display = document.getElementById('fileName');
+    if (input.files[0]) {
+      display.textContent = '✅ Selected: ' + input.files[0].name;
+    }
+  }
+</script>
+
+{% endblock %}

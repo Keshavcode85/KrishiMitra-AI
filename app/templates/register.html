@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="auth-wrapper">
+  <div class="auth-illustration">
+    <div class="auth-quote">
+      <h2>"Agriculture is our wisest pursuit, because it will in the end contribute most to real wealth, good morals & happiness."</h2>
+      <span>— Thomas Jefferson</span>
+    </div>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-logo">🌿</div>
+    <h2 class="auth-title">Create Account</h2>
+    <p class="auth-subtitle">Join the KrishiMitra farming community today</p>
+
+    {% if error %}
+      <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+      <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    <form method="POST" class="auth-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="Choose a username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+      </div>
+      <button type="submit" class="btn-auth">Register →</button>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a href="/login">Login Here</a>
+    </p>
+  </div>
+</div>
+
+{% endblock %}
