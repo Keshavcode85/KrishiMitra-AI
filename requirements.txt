@@ -1,11 +1,8 @@
-Flask==3.0.3
-gunicorn==21.2.0
-pymongo==4.6.3
-dnspython==2.6.1
-tensorflow==2.16.1
-keras==3.2.1
+Flask
+gunicorn
+pymongo
+dnspython
 numpy
 Pillow
-requests
-Werkzeug
 h5py
+Werkzeug
