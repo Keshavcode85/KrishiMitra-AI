@@ -17,9 +17,9 @@
       <span class="logo-text">KrishiMitra <em>AI</em></span>
     </a>
     <ul class="nav-links">
-      <li><a href="/" class="nav-link">Home</a></li>
-      <li><a href="/shop" class="nav-link">Shop</a></li>
-      <li><a href="/chatbot" class="nav-link">Chatbot</a></li>
+      <li><a href="{{ url_for('main.home') }}" class="nav-link">Home</a></li>
+      <li><a href="{{ url_for('main.shop') }}" class="nav-link">Shop</a></li>
+      <li><a href="{{ url_for('main.chatbot') }}" class="nav-link">Chatbot</a></li>
       <li>
         <a href="/cart" class="btn-cart-nav">
           🛒 My Cart
