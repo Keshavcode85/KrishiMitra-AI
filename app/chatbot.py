@@ -2,20 +2,28 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import requests
+import os
 
 # -------------------------------
-# LOAD AI MODEL
+# LOAD AI MODEL (Render Safe Path)
 # -------------------------------
 
-model = tf.keras.models.load_model("model/plant_disease_model.h5")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "..", "model", "plant_disease_model.h5")
+
+model = tf.keras.models.load_model(MODEL_PATH)
+
+# -------------------------------
+# CLASS LABELS
+# -------------------------------
 
 classes = [
-"Potato Early Blight",
-"Potato Late Blight",
-"Maize Rust",
-"Rice Leaf Blast",
-"Wheat Leaf Rust",
-"Healthy"
+    "Potato Early Blight",
+    "Potato Late Blight",
+    "Maize Rust",
+    "Rice Leaf Blast",
+    "Wheat Leaf Rust",
+    "Healthy"
 ]
 
 # -------------------------------
@@ -23,24 +31,12 @@ classes = [
 # -------------------------------
 
 medicine = {
-
-"Potato Early Blight":
-"Mancozeb Fungicide Spray",
-
-"Potato Late Blight":
-"Metalaxyl Spray",
-
-"Maize Rust":
-"Propiconazole Spray",
-
-"Rice Leaf Blast":
-"Tricyclazole Spray",
-
-"Wheat Leaf Rust":
-"Tilt Fungicide",
-
-"Healthy":
-"No disease detected"
+    "Potato Early Blight": "Mancozeb Fungicide Spray",
+    "Potato Late Blight": "Metalaxyl Spray",
+    "Maize Rust": "Propiconazole Spray",
+    "Rice Leaf Blast": "Tricyclazole Spray",
+    "Wheat Leaf Rust": "Tilt Fungicide",
+    "Healthy": "No disease detected"
 }
 
 # -------------------------------
@@ -52,16 +48,20 @@ API_KEY = "42872c9adfa7373605ac509b9b3eb975"
 
 def get_weather(city):
 
-    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+    try:
+        url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
 
-    response = requests.get(url)
-    data = response.json()
+        response = requests.get(url)
+        data = response.json()
 
-    weather = data["weather"][0]["description"]
-    temp = data["main"]["temp"]
-    humidity = data["main"]["humidity"]
+        weather = data["weather"][0]["description"]
+        temp = data["main"]["temp"]
+        humidity = data["main"]["humidity"]
 
-    return weather, temp, humidity
+        return weather, temp, humidity
+
+    except:
+        return "Unknown", 0, 0
 
 
 # -------------------------------
@@ -89,9 +89,9 @@ def recommend_crop(temp, humidity):
 
 def predict_disease(image_path):
 
-    img = Image.open(image_path).resize((224,224))
-    img = np.array(img)/255.0
-    img = np.expand_dims(img,axis=0)
+    img = Image.open(image_path).resize((224, 224))
+    img = np.array(img) / 255.0
+    img = np.expand_dims(img, axis=0)
 
     prediction = model.predict(img)
 
@@ -132,13 +132,10 @@ Recommended Crop:
 """
 
     elif "fertilizer" in message:
-
         return "Recommended fertilizer: NPK balanced fertilizer."
 
     elif "hello" in message:
-
         return "Hello Farmer 👋 How can I help you?"
 
     else:
-
         return "Ask me about crop recommendation, plant disease or fertilizer."
