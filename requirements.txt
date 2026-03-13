@@ -2,8 +2,8 @@ Flask==3.0.3
 gunicorn==21.2.0
 pymongo==4.6.3
 dnspython==2.6.1
-tensorflow==2.12.0
-keras==2.13.1
+tensorflow==2.15.0
+keras==2.15.0
 numpy==1.24.3
 Pillow==10.3.0
 requests==2.31.0
