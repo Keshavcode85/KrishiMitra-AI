@@ -1,10 +1,10 @@
-Flask
-gunicorn
-pymongo
-dnspython
-tensorflow-cpu==2.13.0
-keras==2.13.1
-numpy==1.24.3
+Flask==3.0.3
+gunicorn==21.2.0
+pymongo==4.6.3
+dnspython==2.6.1
+tensorflow==2.16.1
+keras==3.2.1
+numpy
 Pillow
 requests
 Werkzeug
