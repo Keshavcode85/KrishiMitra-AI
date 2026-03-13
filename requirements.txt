@@ -1,9 +1,12 @@
+pip
+setuptools
+wheel
+
 Flask
 gunicorn
 pymongo
 dnspython
-numpy==1.24.3
 Pillow
 h5py
-tensorflow==2.13.0
 Werkzeug
+numpy
