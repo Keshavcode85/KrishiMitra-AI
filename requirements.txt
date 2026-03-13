@@ -5,4 +5,5 @@ dnspython
 numpy
 Pillow
 h5py
+tensorflow-cpu
 Werkzeug
