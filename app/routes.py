@@ -30,7 +30,7 @@ def home():
 
 
 # ----------------------------
-# Shop (MongoDB se products)
+# Shop
 # ----------------------------
 @main.route("/shop")
 def shop():
@@ -40,7 +40,7 @@ def shop():
 
 
 # ----------------------------
-# Add Product (Image Upload)
+# Add Product
 # ----------------------------
 @main.route("/add_product", methods=["GET", "POST"])
 @login_required
@@ -49,15 +49,19 @@ def add_product():
     db = current_app.db
 
     if request.method == "POST":
+
         name = request.form.get("name")
         price = int(request.form.get("price"))
         description = request.form.get("description")
 
-        image = request.files["image"]
-        filename = secure_filename(image.filename)
+        image = request.files.get("image")
 
-        upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-        image.save(upload_path)
+        if image and image.filename != "":
+            filename = secure_filename(image.filename)
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            image.save(filepath)
+        else:
+            filename = "default.png"
 
         db.products.insert_one({
             "name": name,
@@ -82,13 +86,14 @@ def add_to_cart(product_id):
         session["cart"] = []
 
     session["cart"].append(product_id)
+    session["cart_count"] = len(session["cart"])
     session.modified = True
 
     return redirect(url_for("main.cart"))
 
 
 # ----------------------------
-# Cart
+# Cart Page
 # ----------------------------
 @main.route("/cart")
 @login_required
@@ -101,6 +106,7 @@ def cart():
     if "cart" in session:
         for item_id in session["cart"]:
             product = db.products.find_one({"_id": ObjectId(item_id)})
+
             if product:
                 cart_items.append(product)
                 total += product["price"]
@@ -109,14 +115,15 @@ def cart():
 
 
 # ----------------------------
-# Remove From Cart
+# Remove Item from Cart
 # ----------------------------
 @main.route("/remove/<product_id>")
 @login_required
 def remove_from_cart(product_id):
 
-    if "cart" in session:
+    if "cart" in session and product_id in session["cart"]:
         session["cart"].remove(product_id)
+        session["cart_count"] = len(session["cart"])
         session.modified = True
 
     return redirect(url_for("main.cart"))
@@ -144,7 +151,8 @@ def chatbot():
         # IMAGE DISEASE DETECTION
         if image and image.filename != "":
 
-            filepath = os.path.join("app/static/uploads", image.filename)
+            filename = secure_filename(image.filename)
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
             image.save(filepath)
 
             disease, medicine = predict_disease(filepath)
@@ -166,16 +174,22 @@ def login():
     db = current_app.db
 
     if request.method == "POST":
+
         username = request.form.get("username")
         password = request.form.get("password")
 
-        user = db.users.find_one({"username": username, "password": password})
+        user = db.users.find_one({
+            "username": username,
+            "password": password
+        })
 
         if user:
             session["user"] = username
+            session["cart"] = []
+            session["cart_count"] = 0
             return redirect(url_for("main.home"))
-        else:
-            return "Invalid Credentials!"
+
+        return "Invalid Credentials!"
 
     return render_template("login.html")
 
@@ -189,6 +203,7 @@ def register():
     db = current_app.db
 
     if request.method == "POST":
+
         username = request.form.get("username")
         password = request.form.get("password")
 
@@ -210,5 +225,9 @@ def register():
 # ----------------------------
 @main.route("/logout")
 def logout():
+
     session.pop("user", None)
+    session.pop("cart", None)
+    session.pop("cart_count", None)
+
     return redirect(url_for("main.home"))

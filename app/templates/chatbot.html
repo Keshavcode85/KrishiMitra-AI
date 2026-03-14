@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KrishiMitra AI — Chatbot</title>
-   <link rel="icon" type="image/x-icon" href=" static/final_favicon.png">
+  <link rel="icon" href="{{ url_for('static', filename='final_favicon.png') }}">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet"/>
   <style>
     /* ── Variables (matches main site) ── */
@@ -484,15 +484,17 @@
 
   <!-- ── Navbar ── -->
   <nav class="navbar">
-    <a href="index.html" class="logo">
+     <a href="{{ url_for('main.home') }}" class="logo">
       <span class="logo-icon">🌱</span>
       Krishi<em>Mitra</em>
     </a>
     <div class="nav-links">
-      <a href="index.html"    class="nav-link">Home</a>
-      <a href="shop.html"     class="nav-link">Shop</a>
-      <a href="chatbot.html"  class="nav-link active">AI Chat</a>
-      <a href="cart.html"     class="btn-cart-nav">🛒 Cart <span style="background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-left:2px;">0</span></a>
+      <a href="{{ url_for('main.home') }}" class="logo">
+
+      <a href="{{ url_for('main.home') }}" class="nav-link">Home</a>
+      <a href="{{ url_for('main.shop') }}" class="nav-link">Shop</a>
+      <a href="{{ url_for('main.chatbot') }}" class="nav-link active">AI Chat</a>
+     <a href="{{ url_for('main.cart') }}" class="btn-cart-nav">🛒 Cart</a>🛒 Cart <span style="background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-left:2px;">0</span></a>
     </div>
   </nav>
 
@@ -909,7 +911,7 @@
           <div class="dc-row"><span>💊 Recommended Medicine</span><strong>${result.med}</strong></div>
           <span class="dc-badge ${isHealthy ? 'healthy' : ''}">${isHealthy ? '✅ Healthy Plant' : '⚠️ Treatment Needed'}</span>
         </div>
-        ${!isHealthy ? `<div class="resp-tip">🛒 <strong>${result.med}</strong> hamare shop mein available hai. <a href="shop.html" style="color:var(--green-mid);font-weight:700;">Shop Now →</a></div>` : '<div class="resp-tip">🎉 Aapka paudha bilkul theek hai! Regular care jaari rakho.</div>'}
+        ${!isHealthy ? `<div class="resp-tip">🛒 <strong>${result.med}</strong> hamare shop mein available hai. <a href="{{ url_for('main.shop') }}" style="color:var(--green-mid);font-weight:700;">Shop Now →</a></div>` : '<div class="resp-tip">🎉 Aapka paudha bilkul theek hai! Regular care jaari rakho.</div>'}
       `;
       appendMessage('bot', html);
     }

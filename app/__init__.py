@@ -5,22 +5,18 @@ import os
 def create_app():
     app = Flask(__name__)
 
-    # Secret Key
-    app.secret_key = "krishimitra_secret_key"
+    # Secret Key from environment
+    app.secret_key = os.getenv("SECRET_KEY")
 
-    # Upload Folder Config
+    # Upload Folder
     app.config['UPLOAD_FOLDER'] = 'static/uploads'
-
-    # Ensure upload folder exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    # MongoDB Connection
-    mongo_uri = "mongodb+srv://krishimitra:keshav1234@krishimitracluster.xt6kwrj.mongodb.net/?appName=KrishiMitraCluster"
+    # MongoDB connection
+    mongo_uri = os.getenv("MONGO_URI")
     client = MongoClient(mongo_uri)
     app.db = client["krishimitra_db"]
-    print(client.list_database_names())
 
-    # Register Blueprint
     from .routes import main
     app.register_blueprint(main)
 

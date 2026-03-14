@@ -4,44 +4,75 @@
   <meta charset="UTF-8">
   <title>KrishiMitra AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <link rel="icon" type="image/x-icon" href=" static/final_favicon.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='final_favicon.png') }}">
+
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
   <!-- Navbar -->
   <nav class="navbar">
-    <a href="/" class="logo">
+
+    <!-- Logo -->
+    <a href="{{ url_for('main.home') }}" class="logo">
       <span class="logo-icon">🌾</span>
       <span class="logo-text">KrishiMitra <em>AI</em></span>
     </a>
+
     <ul class="nav-links">
-      <li><a href="{{ url_for('main.home') }}" class="nav-link">Home</a></li>
-      <li><a href="{{ url_for('main.shop') }}" class="nav-link">Shop</a></li>
-      <li><a href="{{ url_for('main.chatbot') }}" class="nav-link">Chatbot</a></li>
+
       <li>
-        <a href="/cart" class="btn-cart-nav">
+        <a href="{{ url_for('main.home') }}" class="nav-link">Home</a>
+      </li>
+
+      <li>
+        <a href="{{ url_for('main.shop') }}" class="nav-link">Shop</a>
+      </li>
+
+      <li>
+        <a href="{{ url_for('main.chatbot') }}" class="nav-link">Chatbot</a>
+      </li>
+
+      <li>
+        <a href="{{ url_for('main.cart') }}" class="btn-cart-nav">
           🛒 My Cart
           {% if session.get("cart_count") %}
             <span class="cart-badge">{{ session.get("cart_count") }}</span>
           {% endif %}
         </a>
       </li>
+
       {% if session.get("user") %}
         <li class="nav-user">Hi, {{ session.get("user") }} 👋</li>
-        <li><a href="/logout" class="btn-nav">Logout</a></li>
+        <li>
+          <a href="{{ url_for('main.logout') }}" class="btn-nav">Logout</a>
+        </li>
       {% else %}
-        <li><a href="/login" class="btn-nav">Login</a></li>
+        <li>
+          <a href="{{ url_for('main.login') }}" class="btn-nav">Login</a>
+        </li>
       {% endif %}
+
     </ul>
+
+    <!-- Mobile Menu Button -->
     <button class="hamburger" onclick="toggleMenu()">☰</button>
+
   </nav>
+
 
   <!-- Page Content -->
   <main class="page-wrapper">
     {% block content %}{% endblock %}
   </main>
+
 
   <!-- Footer -->
   <footer class="footer">
@@ -51,10 +82,12 @@
     </div>
   </footer>
 
+
   <script>
     function toggleMenu() {
       document.querySelector('.nav-links').classList.toggle('open');
     }
   </script>
+
 </body>
 </html>
