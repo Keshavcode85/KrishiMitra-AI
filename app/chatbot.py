@@ -1,21 +1,37 @@
-import tensorflow as tf
 import numpy as np
 from PIL import Image
 import requests
 import os
 
-# -------------------------------
-# LOAD AI MODEL (Render Safe Path)
-# -------------------------------
+# ---------------------------------
+# MODEL GLOBAL VARIABLE
+# ---------------------------------
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "..", "model", "plant_disease_model.h5")
+model = None
 
-model = tf.keras.models.load_model(MODEL_PATH)
+# ---------------------------------
+# LOAD MODEL (LAZY LOAD)
+# ---------------------------------
 
-# -------------------------------
+def load_model():
+
+    global model
+
+    if model is None:
+
+        import tensorflow as tf
+
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        MODEL_PATH = os.path.join(BASE_DIR, "..", "model", "plant_disease_model.h5")
+
+        model = tf.keras.models.load_model(MODEL_PATH)
+
+    return model
+
+
+# ---------------------------------
 # CLASS LABELS
-# -------------------------------
+# ---------------------------------
 
 classes = [
     "Potato Early Blight",
@@ -26,9 +42,10 @@ classes = [
     "Healthy"
 ]
 
-# -------------------------------
+
+# ---------------------------------
 # MEDICINE DATABASE
-# -------------------------------
+# ---------------------------------
 
 medicine = {
     "Potato Early Blight": "Mancozeb Fungicide Spray",
@@ -39,16 +56,18 @@ medicine = {
     "Healthy": "No disease detected"
 }
 
-# -------------------------------
-# WEATHER API
-# -------------------------------
 
-API_KEY = "42872c9adfa7373605ac509b9b3eb975"
+# ---------------------------------
+# WEATHER API
+# ---------------------------------
+
+API_KEY = "YOUR_API_KEY"
 
 
 def get_weather(city):
 
     try:
+
         url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
 
         response = requests.get(url)
@@ -61,12 +80,13 @@ def get_weather(city):
         return weather, temp, humidity
 
     except:
+
         return "Unknown", 0, 0
 
 
-# -------------------------------
+# ---------------------------------
 # CROP RECOMMENDATION
-# -------------------------------
+# ---------------------------------
 
 def recommend_crop(temp, humidity):
 
@@ -83,34 +103,43 @@ def recommend_crop(temp, humidity):
         return "Potato 🥔"
 
 
-# -------------------------------
+# ---------------------------------
 # DISEASE DETECTION
-# -------------------------------
+# ---------------------------------
 
 def predict_disease(image_path):
 
-    img = Image.open(image_path).resize((224, 224))
-    img = np.array(img) / 255.0
-    img = np.expand_dims(img, axis=0)
+    try:
 
-    prediction = model.predict(img)
+        model = load_model()
 
-    index = np.argmax(prediction)
+        img = Image.open(image_path).resize((224, 224))
+        img = np.array(img) / 255.0
+        img = np.expand_dims(img, axis=0)
 
-    disease = classes[index]
+        prediction = model.predict(img)
 
-    return disease, medicine[disease]
+        index = np.argmax(prediction)
+
+        disease = classes[index]
+
+        return disease, medicine[disease]
+
+    except Exception as e:
+
+        print("Model Error:", e)
+
+        return "Model not available", "Server cannot run AI model"
 
 
-# -------------------------------
+# ---------------------------------
 # CHATBOT RESPONSE
-# -------------------------------
+# ---------------------------------
 
 def chatbot_response(message):
 
     message = message.lower()
 
-    # WEATHER + CROP RECOMMENDATION
     if "recommend crop" in message:
 
         words = message.split()
