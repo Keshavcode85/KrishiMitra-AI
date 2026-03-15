@@ -126,7 +126,6 @@ AI Chatbot
 Home Page 
 Agriculture Shop  
 
-(Add screenshots here)
 https://github.com/Keshavcode85/KrishiMitra-AI/blob/main/AI-CHATBOT.png
 https://github.com/Keshavcode85/KrishiMitra-AI/blob/main/HOME%20PAGE.png
 https://github.com/Keshavcode85/KrishiMitra-AI/blob/main/FARMER%20SHOP.png
